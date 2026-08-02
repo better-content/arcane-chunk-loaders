@@ -1,0 +1,10 @@
+{
+  "block.arcane_chunkloaders.flux_chunk_anchor": "Flux Chunk Anchor",
+  "block.arcane_chunkloaders.kinetic_chunk_anchor": "Kinetic Chunk Anchor",
+  "block.arcane_chunkloaders.source_chunk_anchor": "Source Chunk Anchor",
+  "block.arcane_chunkloaders.lifeforce_chunk_anchor": "Lifeforce Chunk Anchor",
+  "block.arcane_chunkloaders.pressure_chunk_anchor": "Pressure Chunk Anchor",
+  "block.arcane_chunkloaders.soul_chunk_anchor": "Soul Chunk Anchor",
+  "block.arcane_chunkloaders.spirit_chunk_anchor": "Spirit Chunk Anchor",
+  "block.arcane_chunkloaders.aureal_chunk_anchor": "Aureal Chunk Anchor"
+}

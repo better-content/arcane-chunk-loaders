@@ -1,0 +1,4 @@
+{
+  "parent": "arcane_chunkloaders:block/chunk_anchor_base",
+  "textures": {"rune": "minecraft:block/redstone_ore"}
+}
