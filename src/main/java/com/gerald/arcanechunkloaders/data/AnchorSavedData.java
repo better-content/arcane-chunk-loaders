@@ -19,6 +19,7 @@ import java.util.UUID;
 
 public final class AnchorSavedData extends SavedData {
     private static final String KEY = "arcane_chunkloaders_anchors";
+    private static final int SCHEMA_VERSION = 1;
     private final Map<UUID, Record> records = new LinkedHashMap<>();
 
     public static AnchorSavedData get(ServerLevel level) {
@@ -68,6 +69,7 @@ public final class AnchorSavedData extends SavedData {
 
     @Override
     public CompoundTag save(CompoundTag tag) {
+        tag.putInt("schema", SCHEMA_VERSION);
         ListTag list = new ListTag();
         records.values().forEach(record -> list.add(record.save()));
         tag.put("anchors", list);
@@ -75,6 +77,11 @@ public final class AnchorSavedData extends SavedData {
     }
 
     public static AnchorSavedData load(CompoundTag tag) {
+        int schema = tag.contains("schema", Tag.TAG_INT) ? tag.getInt("schema") : 0;
+        if (schema != SCHEMA_VERSION) {
+            throw new IllegalStateException("Unsupported Arcane Chunkloaders save schema " + schema
+                    + "; expected " + SCHEMA_VERSION + ". Refusing to rewrite world data.");
+        }
         AnchorSavedData data = new AnchorSavedData();
         for (Tag raw : tag.getList("anchors", Tag.TAG_COMPOUND)) {
             Record record = Record.load((CompoundTag) raw);
