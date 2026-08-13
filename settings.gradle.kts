@@ -6,4 +6,4 @@ pluginManagement {
     }
 }
 
-rootProject.name = "arcane-chunkloaders"
+rootProject.name = "arcane-chunk-loaders"

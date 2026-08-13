@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "active=false": {"model": "arcane_chunk_loaders:block/soul_chunk_anchor"},
+    "active=true": {"model": "arcane_chunk_loaders:block/soul_chunk_anchor"}
+  }
+}

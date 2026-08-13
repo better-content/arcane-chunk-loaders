@@ -18,10 +18,10 @@ val modAuthors = property("mod_authors") as String
 val modDescription = property("mod_description") as String
 val modLicense = property("mod_license") as String
 
-group = property("mod_group") as String
+group = "com.bettercontent"
 version = modVersion
 
-base { archivesName.set(modId) }
+base { archivesName.set(property("artifact_name") as String) }
 
 fun deobf(notation: String): Any =
     requireNotNull(extensions.getByName("fg").withGroovyBuilder { "deobf"(notation) })
@@ -90,7 +90,7 @@ val stageRuntimeJar by tasks.registering(Copy::class) {
     dependsOn(tasks.named("reobfJar"))
     from(layout.buildDirectory.file("reobfJar/output.jar"))
     into(layout.buildDirectory.dir("libs"))
-    rename { "$modId-$modVersion.jar" }
+    rename { "${base.archivesName.get()}-$modVersion.jar" }
 }
 
 tasks.named("assemble") { dependsOn(stageRuntimeJar) }
