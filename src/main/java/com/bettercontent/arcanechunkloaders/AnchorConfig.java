@@ -16,8 +16,6 @@ public final class AnchorConfig {
     public static final ForgeConfigSpec.IntValue SOUL_INTERVAL;
     public static final ForgeConfigSpec.IntValue SPIRIT_CAPACITY;
     public static final ForgeConfigSpec.IntValue SPIRIT_INTERVAL;
-    public static final ForgeConfigSpec.IntValue AUREAL_CAPACITY;
-    public static final ForgeConfigSpec.IntValue AUREAL_INTERVAL;
     public static final ForgeConfigSpec.IntValue KINETIC_CAPACITY;
     public static final ForgeConfigSpec.IntValue KINETIC_MIN_RPM;
     public static final ForgeConfigSpec.DoubleValue KINETIC_STRESS_IMPACT;
@@ -39,8 +37,6 @@ public final class AnchorConfig {
         SOUL_INTERVAL = builder.defineInRange("goety_soul_interval_ticks", 20, 1, 72_000);
         SPIRIT_CAPACITY = builder.defineInRange("malum_spirit_capacity", 24, 1, 64);
         SPIRIT_INTERVAL = builder.defineInRange("malum_spirit_interval_ticks", 6_000, 1, 720_000);
-        AUREAL_CAPACITY = builder.defineInRange("aureal_capacity", 120, 1, 10_000);
-        AUREAL_INTERVAL = builder.defineInRange("aureal_interval_ticks", 1_200, 1, 720_000);
         KINETIC_CAPACITY = builder.defineInRange("kinetic_service_tick_capacity", 144_000, 1, Integer.MAX_VALUE);
         builder.pop();
         builder.push("kinetic");

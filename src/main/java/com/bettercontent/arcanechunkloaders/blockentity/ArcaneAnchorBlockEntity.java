@@ -47,7 +47,6 @@ public final class ArcaneAnchorBlockEntity extends BlockEntity implements Anchor
     private int source;
     private int air;
     private int soul;
-    private int aureal;
     private final FluidTank lifeforce = new FluidTank(AnchorConfig.LIFEFORCE_CAPACITY.get(), this::isLifeEssence) {
         @Override protected void onContentsChanged() { setChanged(); }
     };
@@ -99,10 +98,7 @@ public final class ArcaneAnchorBlockEntity extends BlockEntity implements Anchor
             return InteractionResult.CONSUME;
         }
         if (player.isShiftKeyDown() && held.isEmpty() && variant == AnchorVariant.SOUL) {
-            return transferPlayerPower(player, true) ? InteractionResult.CONSUME : InteractionResult.PASS;
-        }
-        if (player.isShiftKeyDown() && held.isEmpty() && variant == AnchorVariant.AUREAL) {
-            return transferPlayerPower(player, false) ? InteractionResult.CONSUME : InteractionResult.PASS;
+            return transferPlayerSoul(player) ? InteractionResult.CONSUME : InteractionResult.PASS;
         }
         if (held.isEmpty()) {
             player.displayClientMessage(Component.literal(variant.displayName() + ": " + chargeText() +
@@ -112,37 +108,25 @@ public final class ArcaneAnchorBlockEntity extends BlockEntity implements Anchor
         return InteractionResult.PASS;
     }
 
-    private boolean transferPlayerPower(Player player, boolean goety) {
-        int room = goety ? AnchorConfig.SOUL_CAPACITY.get() - soul : AnchorConfig.AUREAL_CAPACITY.get() - aureal;
+    private boolean transferPlayerSoul(Player player) {
+        int room = AnchorConfig.SOUL_CAPACITY.get() - soul;
         if (room <= 0) {
             player.displayClientMessage(Component.literal("The anchor is already full."), true);
             return true;
         }
         try {
-            if (goety) {
-                Class<?> helper = Class.forName("com.Polarice3.Goety.utils.SEHelper");
-                Method get = helper.getMethod("getSESouls", Player.class);
-                Method decrease = helper.getMethod("decreaseSESouls", Player.class, int.class);
-                int moved = Math.min(room, (Integer) get.invoke(null, player));
-                if (moved <= 0 || !((Boolean) decrease.invoke(null, player, moved))) return false;
-                soul += moved;
-                invokeOptional(helper, "sendSEUpdatePacket", player);
-                player.displayClientMessage(Component.literal("Transferred " + moved + " soul energy."), true);
-            } else {
-                Class<?> helper = Class.forName("com.stal111.forbidden_arcanus.common.aureal.AurealHelper");
-                Object capability = helper.getMethod("getCapability", Player.class).invoke(null, player);
-                Method get = capability.getClass().getMethod("getAureal");
-                Method decrease = capability.getClass().getMethod("decreaseAureal", int.class);
-                int moved = Math.min(room, (Integer) get.invoke(capability));
-                if (moved <= 0 || !((Boolean) decrease.invoke(capability, moved))) return false;
-                aureal += moved;
-                invokeOptional(helper, "sendAurealUpdatePacket", player);
-                player.displayClientMessage(Component.literal("Transferred " + moved + " Aureal."), true);
-            }
+            Class<?> helper = Class.forName("com.Polarice3.Goety.utils.SEHelper");
+            Method get = helper.getMethod("getSESouls", Player.class);
+            Method decrease = helper.getMethod("decreaseSESouls", Player.class, int.class);
+            int moved = Math.min(room, (Integer) get.invoke(null, player));
+            if (moved <= 0 || !((Boolean) decrease.invoke(null, player, moved))) return false;
+            soul += moved;
+            invokeOptional(helper, "sendSEUpdatePacket", player);
+            player.displayClientMessage(Component.literal("Transferred " + moved + " soul energy."), true);
             setChangedAndSync();
             return true;
         } catch (ReflectiveOperationException error) {
-            ArcaneChunkLoadersMod.LOGGER.warn("Could not transfer {} power", goety ? "Goety soul" : "Aureal", error);
+            ArcaneChunkLoadersMod.LOGGER.warn("Could not transfer Goety soul power", error);
             return false;
         }
     }
@@ -166,7 +150,6 @@ public final class ArcaneAnchorBlockEntity extends BlockEntity implements Anchor
             case PRESSURE -> consumeAir();
             case SOUL -> consumeTimedSoul(gameTime);
             case SPIRIT -> consumeTimedSpirit(gameTime);
-            case AUREAL -> consumeTimedAureal(gameTime);
             case KINETIC -> false;
         };
         if (consumed) setChanged();
@@ -214,12 +197,6 @@ public final class ArcaneAnchorBlockEntity extends BlockEntity implements Anchor
         return true;
     }
 
-    private boolean consumeTimedAureal(long gameTime) {
-        if (aureal <= 0) return false;
-        if (gameTime % AnchorConfig.AUREAL_INTERVAL.get() == 0) aureal--;
-        return true;
-    }
-
     @Override
     public double chargeFraction() {
         return switch (variant) {
@@ -229,7 +206,6 @@ public final class ArcaneAnchorBlockEntity extends BlockEntity implements Anchor
             case PRESSURE -> ratio(air, AnchorConfig.AIR_CAPACITY.get());
             case SOUL -> ratio(soul, AnchorConfig.SOUL_CAPACITY.get());
             case SPIRIT -> ratio(spirits.getStackInSlot(0).getCount(), AnchorConfig.SPIRIT_CAPACITY.get());
-            case AUREAL -> ratio(aureal, AnchorConfig.AUREAL_CAPACITY.get());
             case KINETIC -> 0.0;
         };
     }
@@ -245,7 +221,6 @@ public final class ArcaneAnchorBlockEntity extends BlockEntity implements Anchor
             case PRESSURE -> air + " / " + AnchorConfig.AIR_CAPACITY.get() + " air";
             case SOUL -> soul + " / " + AnchorConfig.SOUL_CAPACITY.get() + " soul energy";
             case SPIRIT -> spirits.getStackInSlot(0).getCount() + " / " + AnchorConfig.SPIRIT_CAPACITY.get() + " spirits";
-            case AUREAL -> aureal + " / " + AnchorConfig.AUREAL_CAPACITY.get() + " Aureal";
             case KINETIC -> "not kinetic";
         };
     }
@@ -275,7 +250,6 @@ public final class ArcaneAnchorBlockEntity extends BlockEntity implements Anchor
         tag.putInt("source", source);
         tag.putInt("air", air);
         tag.putInt("soul", soul);
-        tag.putInt("aureal", aureal);
         tag.put("lifeforce", lifeforce.writeToNBT(new CompoundTag()));
         tag.put("spirits", spirits.serializeNBT());
     }
@@ -287,7 +261,6 @@ public final class ArcaneAnchorBlockEntity extends BlockEntity implements Anchor
         source = tag.getInt("source");
         air = tag.getInt("air");
         soul = tag.getInt("soul");
-        aureal = tag.getInt("aureal");
         if (tag.contains("lifeforce")) lifeforce.readFromNBT(tag.getCompound("lifeforce"));
         if (tag.contains("spirits")) spirits.deserializeNBT(tag.getCompound("spirits"));
     }

@@ -16,7 +16,6 @@
           {"source":"source","target":"BlockEntityTag.source","op":"replace"},
           {"source":"air","target":"BlockEntityTag.air","op":"replace"},
           {"source":"soul","target":"BlockEntityTag.soul","op":"replace"},
-          {"source":"aureal","target":"BlockEntityTag.aureal","op":"replace"},
           {"source":"lifeforce","target":"BlockEntityTag.lifeforce","op":"replace"},
           {"source":"spirits","target":"BlockEntityTag.spirits","op":"replace"},
           {"source":"charge","target":"BlockEntityTag.charge","op":"replace"}

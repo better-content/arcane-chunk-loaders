@@ -45,7 +45,6 @@ public final class AnchorBlockItem extends BlockItem {
             case LIFEFORCE -> tag.getCompound("lifeforce").getInt("Amount") + " mB life essence";
             case PRESSURE -> tag.getInt("air") + " air";
             case SOUL -> tag.getInt("soul") + " soul energy";
-            case AUREAL -> tag.getInt("aureal") + " Aureal";
             case SPIRIT -> spiritCount(tag.getCompound("spirits")) + " spirits";
         };
     }

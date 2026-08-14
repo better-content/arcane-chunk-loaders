@@ -12,8 +12,7 @@ public enum AnchorVariant {
     LIFEFORCE("lifeforce_chunk_anchor", "Lifeforce Chunk Anchor", "bloodmagic:bloodstonebrick"),
     PRESSURE("pressure_chunk_anchor", "Pressure Chunk Anchor", "pneumaticcraft:compressed_iron_block"),
     SOUL("soul_chunk_anchor", "Soul Chunk Anchor", "goety:ominous_stone"),
-    SPIRIT("spirit_chunk_anchor", "Spirit Chunk Anchor", "malum:block_of_soulstone"),
-    AUREAL("aureal_chunk_anchor", "Aureal Chunk Anchor", "forbidden_arcanus:arcane_polished_darkstone");
+    SPIRIT("spirit_chunk_anchor", "Spirit Chunk Anchor", "malum:block_of_soulstone");
 
     private final String id;
     private final String displayName;

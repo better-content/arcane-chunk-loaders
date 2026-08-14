@@ -71,10 +71,3 @@ mandatory=true
 versionRange="[0,)"
 ordering="AFTER"
 side="BOTH"
-
-[[dependencies.${modId}]]
-modId="forbidden_arcanus"
-mandatory=true
-versionRange="[0,)"
-ordering="AFTER"
-side="BOTH"
