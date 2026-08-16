@@ -26,6 +26,7 @@ public final class AnchorBlockItem extends BlockItem {
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, level, tooltip, flag);
+        tooltip.add(Component.literal(variant.inputDescription()).withStyle(ChatFormatting.GRAY));
         tooltip.add(Component.literal("Keeps a centered 3x3 chunk area fully ticking").withStyle(ChatFormatting.DARK_PURPLE));
         tooltip.add(Component.literal("Redstone disables loading but not charging").withStyle(ChatFormatting.GRAY));
         CompoundTag blockTag = stack.getTagElement("BlockEntityTag");
