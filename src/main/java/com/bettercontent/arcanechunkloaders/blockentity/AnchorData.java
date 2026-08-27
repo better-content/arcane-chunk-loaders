@@ -18,6 +18,7 @@ public final class AnchorData {
     private boolean registered;
     private boolean ticketsActive;
     private boolean lastVisualActive;
+    private boolean remoteTicketVerified;
     private int syncCountdown;
 
     public void placedBy(UUID playerId, String playerName) {
@@ -42,6 +43,14 @@ public final class AnchorData {
         if (active != ticketsActive) {
             setTickets(level, owner.anchorPos(), active);
             ticketsActive = active;
+        }
+        if (active && !remoteTicketVerified && placerId != null) {
+            var player = level.getServer().getPlayerList().getPlayer(placerId);
+            if (player != null && (player.serverLevel() != level || player.blockPosition().distSqr(owner.anchorPos()) > remoteRangeSquared(player))) {
+                com.bettercontent.arcanechunkloaders.ThreadsBridge.ticketVerified(player, id);
+                remoteTicketVerified = true;
+                owner.markAnchorChanged();
+            }
         }
         boolean visualChanged = active != lastVisualActive;
         if (visualChanged) {
@@ -82,11 +91,17 @@ public final class AnchorData {
         }
     }
 
+    private static double remoteRangeSquared(net.minecraft.server.level.ServerPlayer player) {
+        double blocks = Math.max(2, player.server.getPlayerList().getViewDistance()) * 16.0;
+        return blocks * blocks;
+    }
+
     public void save(CompoundTag tag) {
         tag.putUUID("anchorId", id);
         if (placerId != null) tag.putUUID("placerId", placerId);
         tag.putString("placerName", placerName);
         tag.putBoolean("ticketsActive", ticketsActive);
+        tag.putBoolean("remoteTicketVerified", remoteTicketVerified);
     }
 
     public void load(CompoundTag tag) {
@@ -94,6 +109,7 @@ public final class AnchorData {
         placerId = tag.hasUUID("placerId") ? tag.getUUID("placerId") : null;
         placerName = tag.contains("placerName") ? tag.getString("placerName") : "unknown";
         ticketsActive = tag.getBoolean("ticketsActive");
+        remoteTicketVerified = tag.getBoolean("remoteTicketVerified");
         registered = false;
     }
 }

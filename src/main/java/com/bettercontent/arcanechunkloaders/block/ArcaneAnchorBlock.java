@@ -57,7 +57,10 @@ public class ArcaneAnchorBlock extends BaseEntityBlock {
     @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         super.setPlacedBy(level, pos, state, placer, stack);
-        if (placer instanceof Player player && level.getBlockEntity(pos) instanceof ArcaneAnchorBlockEntity anchor) anchor.placedBy(player);
+        if (placer instanceof Player player && level.getBlockEntity(pos) instanceof ArcaneAnchorBlockEntity anchor) {
+            anchor.placedBy(player);
+            if (player instanceof ServerPlayer serverPlayer) com.bettercontent.arcanechunkloaders.ThreadsBridge.placed(serverPlayer, anchor.anchorId());
+        }
     }
 
     @Override
