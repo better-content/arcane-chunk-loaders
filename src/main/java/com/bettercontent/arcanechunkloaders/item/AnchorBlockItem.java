@@ -26,15 +26,12 @@ public final class AnchorBlockItem extends BlockItem {
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, level, tooltip, flag);
-        tooltip.add(Component.literal("Keeps a centered 3x3 chunk area fully ticking").withStyle(ChatFormatting.DARK_PURPLE));
-        tooltip.add(Component.literal("Redstone disables loading but not charging").withStyle(ChatFormatting.GRAY));
         CompoundTag blockTag = stack.getTagElement("BlockEntityTag");
         if (blockTag == null) {
             tooltip.add(Component.literal("Stored charge: empty").withStyle(ChatFormatting.DARK_GRAY));
             return;
         }
         tooltip.add(Component.literal("Stored charge: " + storedText(blockTag)).withStyle(ChatFormatting.AQUA));
-        tooltip.add(Component.literal("Charge and inventory are retained when placed").withStyle(ChatFormatting.GRAY));
     }
 
     private String storedText(CompoundTag tag) {

@@ -26,7 +26,6 @@ public enum AnchorVariant {
 
     public String id() { return id; }
     public String displayName() { return displayName; }
-
     public Block coreBlock() {
         Block block = ForgeRegistries.BLOCKS.getValue(coreBlock);
         return block == null || block == Blocks.AIR ? Blocks.AMETHYST_BLOCK : block;
