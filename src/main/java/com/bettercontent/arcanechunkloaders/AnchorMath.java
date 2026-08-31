@@ -26,6 +26,10 @@ public final class AnchorMath {
         return Math.multiplyExact(hours, 72_000);
     }
 
+    public static boolean canSatisfySingleSourceRequest(int stored, int requested) {
+        return requested >= 0 && stored >= requested;
+    }
+
     public record ChunkOffset(int x, int z) {}
 
     private AnchorMath() {}

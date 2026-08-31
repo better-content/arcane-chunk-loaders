@@ -8,6 +8,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.world.ForgeChunkManager;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
+import net.minecraftforge.event.RegisterGameTestsEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -28,6 +29,7 @@ public final class ArcaneChunkLoadersMod {
         AnchorRegistries.ITEMS.register(modBus);
         AnchorRegistries.BLOCK_ENTITIES.register(modBus);
         modBus.addListener(this::addCreativeItems);
+        modBus.addListener(this::registerGameTests);
         ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, AnchorConfig.SPEC);
 
         MinecraftForge.EVENT_BUS.addListener(this::registerCommands);
@@ -47,5 +49,9 @@ public final class ArcaneChunkLoadersMod {
 
     private void registerCommands(RegisterCommandsEvent event) {
         ChunkLoaderCommands.register(event.getDispatcher());
+    }
+
+    private void registerGameTests(RegisterGameTestsEvent event) {
+        event.register(AnchorSourceGameTests.class);
     }
 }

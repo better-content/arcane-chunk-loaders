@@ -39,6 +39,8 @@ minecraft {
             workingDirectory(project.file("run"))
             property("forge.logging.console.level", "info")
             property("forge.enabledGameTestNamespaces", modId)
+            property("mixin.env.remapRefMap", "true")
+            property("mixin.env.refMapRemappingFile", file("build/createSrgToMcp/output.srg").absolutePath)
             mods { create(modId) { source(sourceSets.main.get()) } }
         }
         create("client")
@@ -60,10 +62,22 @@ dependencies {
     implementation(deobf("com.simibubi.create:create-$minecraftVersion:$createVersion:slim"))
     implementation(deobf("net.createmod.ponder:Ponder-Forge-$minecraftVersion:$ponderVersion"))
     compileOnly(deobf("dev.engine-room.flywheel:flywheel-forge-api-$minecraftVersion:$flywheelVersion"))
+    runtimeOnly(deobf("dev.engine-room.flywheel:flywheel-forge-$minecraftVersion:$flywheelVersion"))
     implementation(deobf("com.tterrag.registrate:Registrate:$registrateVersion"))
     implementation("io.github.llamalad7:mixinextras-forge:0.5.4")
     compileOnly(deobf("curse.maven:ars-nouveau-401955:6688854"))
     compileOnly(deobf("curse.maven:pneumaticcraft-repressurized-281849:7307654"))
+    runtimeOnly(deobf("curse.maven:ars-nouveau-401955:6688854"))
+    runtimeOnly(deobf("curse.maven:pneumaticcraft-repressurized-281849:7307654"))
+    runtimeOnly(deobf("curse.maven:blood-magic-224791:7956981"))
+    runtimeOnly(deobf("curse.maven:goety-586095:8087429"))
+    runtimeOnly(deobf("curse.maven:malum-484064:6646111"))
+    runtimeOnly(deobf("curse.maven:power-grid-1321420:7714613"))
+    runtimeOnly(deobf("curse.maven:patchouli-306770:7731017"))
+    runtimeOnly(deobf("curse.maven:curios-309927:6418456"))
+    runtimeOnly(deobf("curse.maven:geckolib-388172:7553267"))
+    runtimeOnly(deobf("curse.maven:architectury-api-419699:5137938"))
+    runtimeOnly(deobf("curse.maven:lodestone-616457:6213794"))
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
 }
 
@@ -95,3 +109,11 @@ val stageRuntimeJar by tasks.registering(Copy::class) {
 
 tasks.named("assemble") { dependsOn(stageRuntimeJar) }
 tasks.register("verifyFast") { dependsOn(tasks.named("test"), tasks.named("assemble")) }
+val syncGameTestStructures by tasks.registering(Sync::class) {
+    from(layout.projectDirectory.dir("src/main/resources/gameteststructures"))
+    into(layout.projectDirectory.dir("run/gameteststructures"))
+}
+tasks.matching { it.name.startsWith("prepareRunGameTestServer") }.configureEach {
+    dependsOn(syncGameTestStructures)
+}
+tasks.register("verifyFull") { dependsOn(tasks.named("verifyFast"), tasks.named("runGameTestServer")) }

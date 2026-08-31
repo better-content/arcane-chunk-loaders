@@ -6,6 +6,8 @@ import com.bettercontent.arcanechunkloaders.AnchorRegistries;
 import com.bettercontent.arcanechunkloaders.AnchorVariant;
 import com.bettercontent.arcanechunkloaders.ArcaneChunkLoadersMod;
 import com.hollingsworth.arsnouveau.api.source.ISourceTile;
+import com.hollingsworth.arsnouveau.api.source.ISpecialSourceProvider;
+import com.hollingsworth.arsnouveau.api.source.SourceManager;
 import me.desht.pneumaticcraft.api.PNCCapabilities;
 import me.desht.pneumaticcraft.api.tileentity.IAirHandler;
 import net.minecraft.core.BlockPos;
@@ -59,6 +61,14 @@ public final class ArcaneAnchorBlockEntity extends BlockEntity implements Anchor
     private LazyOptional<net.minecraftforge.fluids.capability.IFluidHandler> fluidCap = LazyOptional.of(() -> lifeforce);
     private LazyOptional<net.minecraftforge.items.IItemHandler> itemCap = LazyOptional.of(() -> spirits);
     private LazyOptional<IAirHandler> airCap = LazyOptional.of(() -> this);
+    private final ISpecialSourceProvider sourceProvider = new ISpecialSourceProvider() {
+        @Override public ISourceTile getSource() { return ArcaneAnchorBlockEntity.this; }
+        @Override public BlockPos getCurrentPos() { return worldPosition; }
+        @Override public boolean isValid() {
+            return variant == AnchorVariant.SOURCE && level != null && !isRemoved()
+                    && level.getBlockEntity(worldPosition) == ArcaneAnchorBlockEntity.this;
+        }
+    };
 
     public ArcaneAnchorBlockEntity(BlockPos pos, BlockState state) {
         super(AnchorRegistries.ARCANE_ANCHOR.get(), pos, state);
@@ -74,6 +84,14 @@ public final class ArcaneAnchorBlockEntity extends BlockEntity implements Anchor
             level.addParticle(net.minecraft.core.particles.ParticleTypes.ENCHANT,
                     pos.getX() + 0.5, pos.getY() + 0.8, pos.getZ() + 0.5,
                     (level.random.nextDouble() - 0.5) * 0.08, 0.03, (level.random.nextDouble() - 0.5) * 0.08);
+        }
+    }
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        if (variant == AnchorVariant.SOURCE && level != null && !level.isClientSide) {
+            SourceManager.INSTANCE.addInterface(level, sourceProvider);
         }
     }
 
