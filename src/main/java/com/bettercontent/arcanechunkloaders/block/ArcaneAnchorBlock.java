@@ -2,6 +2,7 @@ package com.bettercontent.arcanechunkloaders.block;
 
 import com.bettercontent.arcanechunkloaders.AnchorVariant;
 import com.bettercontent.arcanechunkloaders.blockentity.ArcaneAnchorBlockEntity;
+import com.bettercontent.arcanechunkloaders.api.event.ArcaneAnchorProgressEvent;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -59,7 +60,10 @@ public class ArcaneAnchorBlock extends BaseEntityBlock {
         super.setPlacedBy(level, pos, state, placer, stack);
         if (placer instanceof Player player && level.getBlockEntity(pos) instanceof ArcaneAnchorBlockEntity anchor) {
             anchor.placedBy(player);
-            if (player instanceof ServerPlayer serverPlayer) com.bettercontent.arcanechunkloaders.ThreadsBridge.placed(serverPlayer, anchor.anchorId());
+            if (player instanceof ServerPlayer serverPlayer) {
+                net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new ArcaneAnchorProgressEvent(
+                        serverPlayer, anchor.anchorId(), ArcaneAnchorProgressEvent.Stage.PLACED));
+            }
         }
     }
 

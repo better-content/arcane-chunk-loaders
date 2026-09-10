@@ -8,6 +8,7 @@ import com.bettercontent.arcanechunkloaders.ArcaneChunkLoadersMod;
 import com.hollingsworth.arsnouveau.api.source.ISourceTile;
 import com.hollingsworth.arsnouveau.api.source.ISpecialSourceProvider;
 import com.hollingsworth.arsnouveau.api.source.SourceManager;
+import com.Polarice3.Goety.utils.SEHelper;
 import me.desht.pneumaticcraft.api.PNCCapabilities;
 import me.desht.pneumaticcraft.api.tileentity.IAirHandler;
 import net.minecraft.core.BlockPos;
@@ -34,10 +35,10 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.templates.FluidTank;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.fml.ModList;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.lang.reflect.Method;
 import java.util.UUID;
 
 public final class ArcaneAnchorBlockEntity extends BlockEntity implements AnchorAccess, ISourceTile, IAirHandler {
@@ -132,25 +133,14 @@ public final class ArcaneAnchorBlockEntity extends BlockEntity implements Anchor
             player.displayClientMessage(Component.literal("The anchor is already full."), true);
             return true;
         }
-        try {
-            Class<?> helper = Class.forName("com.Polarice3.Goety.utils.SEHelper");
-            Method get = helper.getMethod("getSESouls", Player.class);
-            Method decrease = helper.getMethod("decreaseSESouls", Player.class, int.class);
-            int moved = Math.min(room, (Integer) get.invoke(null, player));
-            if (moved <= 0 || !((Boolean) decrease.invoke(null, player, moved))) return false;
-            soul += moved;
-            invokeOptional(helper, "sendSEUpdatePacket", player);
-            player.displayClientMessage(Component.literal("Transferred " + moved + " soul energy."), true);
-            setChangedAndSync();
-            return true;
-        } catch (ReflectiveOperationException error) {
-            ArcaneChunkLoadersMod.LOGGER.warn("Could not transfer Goety soul power", error);
-            return false;
-        }
-    }
-
-    private static void invokeOptional(Class<?> owner, String name, Player player) {
-        try { owner.getMethod(name, Player.class).invoke(null, player); } catch (ReflectiveOperationException ignored) {}
+        if (!ModList.get().isLoaded("goety")) return false;
+        int moved = Math.min(room, SEHelper.getSESouls(player));
+        if (moved <= 0 || !SEHelper.decreaseSESouls(player, moved)) return false;
+        soul += moved;
+        SEHelper.sendSEUpdatePacket(player);
+        player.displayClientMessage(Component.literal("Transferred " + moved + " soul energy."), true);
+        setChangedAndSync();
+        return true;
     }
 
     @Override public ServerLevel serverLevel() { return (ServerLevel) level; }

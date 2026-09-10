@@ -67,6 +67,7 @@ dependencies {
     implementation("io.github.llamalad7:mixinextras-forge:0.5.4")
     compileOnly(deobf("curse.maven:ars-nouveau-401955:6688854"))
     compileOnly(deobf("curse.maven:pneumaticcraft-repressurized-281849:7307654"))
+    compileOnly(deobf("curse.maven:goety-586095:8087429"))
     runtimeOnly(deobf("curse.maven:ars-nouveau-401955:6688854"))
     runtimeOnly(deobf("curse.maven:pneumaticcraft-repressurized-281849:7307654"))
     runtimeOnly(deobf("curse.maven:blood-magic-224791:7956981"))

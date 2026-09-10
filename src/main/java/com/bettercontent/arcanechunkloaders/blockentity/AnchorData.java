@@ -3,6 +3,7 @@ package com.bettercontent.arcanechunkloaders.blockentity;
 import com.bettercontent.arcanechunkloaders.ArcaneChunkLoadersMod;
 import com.bettercontent.arcanechunkloaders.AnchorMath;
 import com.bettercontent.arcanechunkloaders.data.AnchorSavedData;
+import com.bettercontent.arcanechunkloaders.api.event.ArcaneAnchorProgressEvent;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
@@ -47,7 +48,8 @@ public final class AnchorData {
         if (active && !remoteTicketVerified && placerId != null) {
             var player = level.getServer().getPlayerList().getPlayer(placerId);
             if (player != null && (player.serverLevel() != level || player.blockPosition().distSqr(owner.anchorPos()) > remoteRangeSquared(player))) {
-                com.bettercontent.arcanechunkloaders.ThreadsBridge.ticketVerified(player, id);
+                net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new ArcaneAnchorProgressEvent(
+                        player, id, ArcaneAnchorProgressEvent.Stage.REMOTE_TICKET_VERIFIED));
                 remoteTicketVerified = true;
                 owner.markAnchorChanged();
             }
