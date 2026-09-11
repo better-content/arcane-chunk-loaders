@@ -110,11 +110,6 @@ val stageRuntimeJar by tasks.registering(Copy::class) {
 
 tasks.named("assemble") { dependsOn(stageRuntimeJar) }
 tasks.register("verifyFast") { dependsOn(tasks.named("test"), tasks.named("assemble")) }
-val syncGameTestStructures by tasks.registering(Sync::class) {
-    from(layout.projectDirectory.dir("src/main/resources/gameteststructures"))
-    into(layout.projectDirectory.dir("run/gameteststructures"))
-}
-tasks.matching { it.name.startsWith("prepareRunGameTestServer") }.configureEach {
-    dependsOn(syncGameTestStructures)
-}
 tasks.register("verifyFull") { dependsOn(tasks.named("verifyFast"), tasks.named("runGameTestServer")) }
+
+apply(from = "gradle/gametest-evidence.gradle")

@@ -53,5 +53,6 @@ public final class ArcaneChunkLoadersMod {
 
     private void registerGameTests(RegisterGameTestsEvent event) {
         event.register(AnchorSourceGameTests.class);
+        event.register(AnchorLifecycleGameTests.class);
     }
 }
