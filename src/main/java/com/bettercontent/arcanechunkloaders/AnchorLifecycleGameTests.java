@@ -219,6 +219,9 @@ public final class AnchorLifecycleGameTests {
     private static void assertTickets(GameTestHelper helper, BlockPos owner, Set<Long> expected, String phase) {
         ForcedChunksSavedData data = helper.getLevel().getDataStorage().get(ForcedChunksSavedData::load, ForcedChunksSavedData.FILE_ID);
         Set<Long> actual = new HashSet<>();
+        var support=com.bettercontent.arcanechunkloaders.api.AnchorWorkApi.supportingAnchor(helper.getLevel(),owner);
+        if(!expected.isEmpty()) helper.assertTrue(support.isPresent(), phase+" work query must observe real active ticket support");
+        helper.assertTrue(com.bettercontent.arcanechunkloaders.api.AnchorWorkApi.supportingAnchor(helper.getLevel(),owner.offset(1000000,0,1000000)).isEmpty(), "Uncovered operations cannot claim anchor support");
         // Query Forge's real owned tickets by mod id AND block position; fixture tickets cannot satisfy this.
         if (data != null) for (Tag rawMod : data.save(new CompoundTag()).getList("ForgeForced", Tag.TAG_COMPOUND)) {
             CompoundTag mod = (CompoundTag) rawMod;
