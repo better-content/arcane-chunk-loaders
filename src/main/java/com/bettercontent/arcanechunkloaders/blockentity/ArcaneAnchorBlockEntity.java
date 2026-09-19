@@ -195,21 +195,23 @@ public final class ArcaneAnchorBlockEntity extends BlockEntity implements Anchor
     }
 
     private boolean consumeTimedSoul() {
-        if (soulServiceCreditTicks == 0) {
-            if (soul <= 0) return false;
-            soul--;
-            soulServiceCreditTicks = AnchorConfig.SOUL_INTERVAL.get();
-        }
-        soulServiceCreditTicks--;
-        return true;
+        AnchorMath.TimedServiceDebit debit = AnchorMath.consumeTimedServiceTick(
+                soul, soulServiceCreditTicks, AnchorConfig.SOUL_INTERVAL.get());
+        soul = debit.units();
+        soulServiceCreditTicks = debit.creditTicks();
+        return debit.consumed();
     }
 
     private boolean consumeTimedSpirit() {
         if (spiritServiceCreditTicks == 0) {
             ItemStack stack = spirits.getStackInSlot(0);
             if (stack.isEmpty()) return false;
-            if (spirits.extractItem(0, 1, false).isEmpty()) return false;
-            spiritServiceCreditTicks = AnchorConfig.SPIRIT_INTERVAL.get();
+            AnchorMath.TimedServiceDebit debit = AnchorMath.consumeTimedServiceTick(
+                    stack.getCount(), 0, AnchorConfig.SPIRIT_INTERVAL.get());
+            if (!debit.consumed()) return false;
+            spirits.extractItem(0, 1, false);
+            spiritServiceCreditTicks = debit.creditTicks();
+            return true;
         }
         spiritServiceCreditTicks--;
         return true;

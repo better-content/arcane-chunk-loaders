@@ -26,6 +26,25 @@ public final class AnchorMath {
         return Math.multiplyExact(hours, 72_000);
     }
 
+    /**
+     * Debits one active service tick from a prepaid timed resource.
+     *
+     * The returned state is deliberately independent of wall-clock time: a
+     * redstone pause or a block reload leaves the remaining active-time credit
+     * untouched.  When no credit remains, the first active tick pays for a
+     * complete interval and immediately consumes that tick from it.
+     */
+    public static TimedServiceDebit consumeTimedServiceTick(int units, int creditTicks, int interval) {
+        if (units < 0 || creditTicks < 0 || interval <= 0) {
+            throw new IllegalArgumentException("Timed service state must be non-negative and have a positive interval");
+        }
+        if (creditTicks > 0) return new TimedServiceDebit(units, creditTicks - 1, true);
+        if (units == 0) return new TimedServiceDebit(units, 0, false);
+        return new TimedServiceDebit(units - 1, interval - 1, true);
+    }
+
+    public record TimedServiceDebit(int units, int creditTicks, boolean consumed) {}
+
     public static boolean canSatisfySingleSourceRequest(int stored, int requested) {
         return requested >= 0 && stored >= requested;
     }
