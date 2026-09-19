@@ -62,12 +62,6 @@ public final class AnchorLifecycleGameTests {
             helper.assertTrue(!anchor.consumePower(0), variant + " must refuse to run empty");
             int serviceTicks = chargeOnePayment(helper, anchor);
             helper.assertTrue(anchor.chargeFraction() > 0, variant + " accepted power must reach the real buffer");
-            if ((variant == AnchorVariant.SOUL && AnchorConfig.SOUL_INTERVAL.get() > 1)
-                    || (variant == AnchorVariant.SPIRIT && AnchorConfig.SPIRIT_INTERVAL.get() > 1)) {
-                double before = anchor.chargeFraction();
-                helper.assertTrue(anchor.consumePower(1) && anchor.chargeFraction() == before,
-                        variant + " must retain its resource between configured payment ticks");
-            }
             for (int tick = 0; tick < serviceTicks; tick++) {
                 helper.assertTrue(anchor.consumePower(0), variant + " must pay its configured service cost");
             }
@@ -138,7 +132,44 @@ public final class AnchorLifecycleGameTests {
             }
             default -> throw new IllegalStateException("Unhandled anchor " + anchor.variant());
         }
-        return 1;
+        return switch (anchor.variant()) {
+            case SOUL -> AnchorConfig.SOUL_INTERVAL.get();
+            case SPIRIT -> AnchorConfig.SPIRIT_INTERVAL.get();
+            default -> 1;
+        };
+    }
+
+    @GameTestGenerator
+    public static Collection<TestFunction> timedCreditRoundTrips() {
+        return java.util.List.of(AnchorVariant.SOUL, AnchorVariant.SPIRIT).stream().map(variant -> new TestFunction(
+                "anchor_credit", "anchorlifecyclegametests.credit_" + variant.name().toLowerCase(Locale.ROOT),
+                ArcaneChunkLoadersMod.MOD_ID + ":blank", 100, 0, true,
+                helper -> timedCreditRoundTrip(helper, variant))).toList();
+    }
+
+    private static void timedCreditRoundTrip(GameTestHelper helper, AnchorVariant variant) {
+        helper.setBlock(SWITCH, Blocks.REDSTONE_BLOCK);
+        helper.setBlock(ANCHOR, AnchorRegistries.ANCHORS.get(variant).get());
+        try {
+            var anchor = (ArcaneAnchorBlockEntity) helper.getBlockEntity(ANCHOR);
+            int interval = chargeOnePayment(helper, anchor);
+            int used = Math.max(1, interval / 2);
+            for (int i = 0; i < used; i++) helper.assertTrue(anchor.consumePower(i), "Paid credit must serve the first half");
+            CompoundTag tag = anchor.saveWithoutMetadata();
+            int remaining = tag.getInt(variant == AnchorVariant.SOUL ? "soulServiceCreditTicks" : "spiritServiceCreditTicks");
+            helper.assertTrue(remaining == interval - used, "Paid service must be accounted in active ticks");
+            var restored = (ArcaneAnchorBlockEntity) ((ArcaneAnchorBlock) AnchorRegistries.ANCHORS.get(variant).get())
+                    .newBlockEntity(helper.absolutePos(ANCHOR), helper.getBlockState(ANCHOR));
+            restored.load(tag);
+            helper.assertTrue(restored.chargeFraction() > 0, "Reloaded prepaid service must remain visible");
+            for (int i = 0; i < remaining; i++) helper.assertTrue(restored.consumePower(i), "Reloaded credit must serve exactly the remainder");
+            helper.assertTrue(!restored.consumePower(0), "A reload must not grant another free payment interval");
+            helper.assertTrue(restored.chargeFraction() == 0, "Exhausted credit must be zero");
+            helper.succeed();
+        } finally {
+            helper.setBlock(ANCHOR, Blocks.AIR);
+            helper.setBlock(SWITCH, Blocks.AIR);
+        }
     }
 
     @GameTest(templateNamespace = ArcaneChunkLoadersMod.MOD_ID, template = "blank", timeoutTicks = 160)

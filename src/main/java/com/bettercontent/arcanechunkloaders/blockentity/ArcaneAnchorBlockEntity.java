@@ -50,6 +50,8 @@ public final class ArcaneAnchorBlockEntity extends BlockEntity implements Anchor
     private int source;
     private int air;
     private int soul;
+    private int soulServiceCreditTicks;
+    private int spiritServiceCreditTicks;
     private final FluidTank lifeforce = new FluidTank(AnchorConfig.LIFEFORCE_CAPACITY.get(), this::isLifeEssence) {
         @Override protected void onContentsChanged() { setChanged(); }
     };
@@ -156,8 +158,8 @@ public final class ArcaneAnchorBlockEntity extends BlockEntity implements Anchor
             case SOURCE -> consumeSource();
             case LIFEFORCE -> consumeLifeforce();
             case PRESSURE -> consumeAir();
-            case SOUL -> consumeTimedSoul(gameTime);
-            case SPIRIT -> consumeTimedSpirit(gameTime);
+            case SOUL -> consumeTimedSoul();
+            case SPIRIT -> consumeTimedSpirit();
             case KINETIC -> false;
         };
         if (consumed) setChanged();
@@ -192,16 +194,24 @@ public final class ArcaneAnchorBlockEntity extends BlockEntity implements Anchor
         return true;
     }
 
-    private boolean consumeTimedSoul(long gameTime) {
-        if (soul <= 0) return false;
-        if (gameTime % AnchorConfig.SOUL_INTERVAL.get() == 0) soul--;
+    private boolean consumeTimedSoul() {
+        if (soulServiceCreditTicks == 0) {
+            if (soul <= 0) return false;
+            soul--;
+            soulServiceCreditTicks = AnchorConfig.SOUL_INTERVAL.get();
+        }
+        soulServiceCreditTicks--;
         return true;
     }
 
-    private boolean consumeTimedSpirit(long gameTime) {
-        ItemStack stack = spirits.getStackInSlot(0);
-        if (stack.isEmpty()) return false;
-        if (gameTime % AnchorConfig.SPIRIT_INTERVAL.get() == 0) spirits.extractItem(0, 1, false);
+    private boolean consumeTimedSpirit() {
+        if (spiritServiceCreditTicks == 0) {
+            ItemStack stack = spirits.getStackInSlot(0);
+            if (stack.isEmpty()) return false;
+            if (spirits.extractItem(0, 1, false).isEmpty()) return false;
+            spiritServiceCreditTicks = AnchorConfig.SPIRIT_INTERVAL.get();
+        }
+        spiritServiceCreditTicks--;
         return true;
     }
 
@@ -212,13 +222,16 @@ public final class ArcaneAnchorBlockEntity extends BlockEntity implements Anchor
             case SOURCE -> ratio(source, AnchorConfig.SOURCE_CAPACITY.get());
             case LIFEFORCE -> ratio(lifeforce.getFluidAmount(), AnchorConfig.LIFEFORCE_CAPACITY.get());
             case PRESSURE -> ratio(air, AnchorConfig.AIR_CAPACITY.get());
-            case SOUL -> ratio(soul, AnchorConfig.SOUL_CAPACITY.get());
-            case SPIRIT -> ratio(spirits.getStackInSlot(0).getCount(), AnchorConfig.SPIRIT_CAPACITY.get());
+            case SOUL -> timedRatio(soul, soulServiceCreditTicks, AnchorConfig.SOUL_CAPACITY.get(), AnchorConfig.SOUL_INTERVAL.get());
+            case SPIRIT -> timedRatio(spirits.getStackInSlot(0).getCount(), spiritServiceCreditTicks, AnchorConfig.SPIRIT_CAPACITY.get(), AnchorConfig.SPIRIT_INTERVAL.get());
             case KINETIC -> 0.0;
         };
     }
 
     private static double ratio(int value, int max) { return AnchorMath.chargeFraction(value, max); }
+    private static double timedRatio(int units, int creditTicks, int capacity, int interval) {
+        return Math.min(1.0, Math.max(0.0, ((double) units * interval + creditTicks) / ((double) capacity * interval)));
+    }
 
     @Override
     public String chargeText() {
@@ -227,8 +240,8 @@ public final class ArcaneAnchorBlockEntity extends BlockEntity implements Anchor
             case SOURCE -> source + " / " + AnchorConfig.SOURCE_CAPACITY.get() + " Source";
             case LIFEFORCE -> lifeforce.getFluidAmount() + " / " + AnchorConfig.LIFEFORCE_CAPACITY.get() + " mB life essence";
             case PRESSURE -> air + " / " + AnchorConfig.AIR_CAPACITY.get() + " air";
-            case SOUL -> soul + " / " + AnchorConfig.SOUL_CAPACITY.get() + " soul energy";
-            case SPIRIT -> spirits.getStackInSlot(0).getCount() + " / " + AnchorConfig.SPIRIT_CAPACITY.get() + " spirits";
+            case SOUL -> soul + " / " + AnchorConfig.SOUL_CAPACITY.get() + " soul energy; " + soulServiceCreditTicks + " prepaid ticks";
+            case SPIRIT -> spirits.getStackInSlot(0).getCount() + " / " + AnchorConfig.SPIRIT_CAPACITY.get() + " spirits; " + spiritServiceCreditTicks + " prepaid ticks";
             case KINETIC -> "not kinetic";
         };
     }
@@ -258,6 +271,8 @@ public final class ArcaneAnchorBlockEntity extends BlockEntity implements Anchor
         tag.putInt("source", source);
         tag.putInt("air", air);
         tag.putInt("soul", soul);
+        tag.putInt("soulServiceCreditTicks", soulServiceCreditTicks);
+        tag.putInt("spiritServiceCreditTicks", spiritServiceCreditTicks);
         tag.put("lifeforce", lifeforce.writeToNBT(new CompoundTag()));
         tag.put("spirits", spirits.serializeNBT());
     }
@@ -269,6 +284,8 @@ public final class ArcaneAnchorBlockEntity extends BlockEntity implements Anchor
         source = tag.getInt("source");
         air = tag.getInt("air");
         soul = tag.getInt("soul");
+        soulServiceCreditTicks = Math.max(0, tag.getInt("soulServiceCreditTicks"));
+        spiritServiceCreditTicks = Math.max(0, tag.getInt("spiritServiceCreditTicks"));
         if (tag.contains("lifeforce")) lifeforce.readFromNBT(tag.getCompound("lifeforce"));
         if (tag.contains("spirits")) spirits.deserializeNBT(tag.getCompound("spirits"));
     }
