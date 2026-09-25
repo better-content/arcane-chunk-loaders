@@ -126,9 +126,9 @@ public final class AnchorLifecycleGameTests {
                 var items = anchor.getCapability(ForgeCapabilities.ITEM_HANDLER).orElseThrow(IllegalStateException::new);
                 helper.assertTrue(items.insertItem(0, new ItemStack(Items.DIRT), false).getCount() == 1,
                         "spirit inventory must reject non-spirit items");
-                var spirit = ForgeRegistries.ITEMS.getValue(new ResourceLocation("malum", "earthen_spirit"));
-                helper.assertTrue(spirit != null && spirit != Items.AIR, "Malum spirit item must be loaded");
-                helper.assertTrue(items.insertItem(0, new ItemStack(spirit), false).isEmpty(), "spirit capability must accept a tagged Malum spirit");
+                var spirit = ForgeRegistries.ITEMS.getValue(new ResourceLocation("malum", "eldritch_spirit"));
+                helper.assertTrue(spirit != null && spirit != Items.AIR, "exotic Malum spirit item must be loaded");
+                helper.assertTrue(items.insertItem(0, new ItemStack(spirit), false).isEmpty(), "spirit capability must accept a tagged exotic spirit");
             }
             default -> throw new IllegalStateException("Unhandled anchor " + anchor.variant());
         }
